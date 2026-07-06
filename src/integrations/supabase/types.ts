@@ -14,7 +14,107 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      cards: {
+        Row: {
+          back_image_url: string | null
+          card_number: string | null
+          created_at: string
+          expiry_date: string | null
+          front_image_url: string | null
+          holder_name: string | null
+          id: string
+          name: string
+          type: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          back_image_url?: string | null
+          card_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          front_image_url?: string | null
+          holder_name?: string | null
+          id?: string
+          name: string
+          type?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          back_image_url?: string | null
+          card_number?: string | null
+          created_at?: string
+          expiry_date?: string | null
+          front_image_url?: string | null
+          holder_name?: string | null
+          id?: string
+          name?: string
+          type?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      notification_schedules: {
+        Row: {
+          card_id: string
+          created_at: string
+          days: number[]
+          hour: number
+          id: string
+          minute: number
+          user_id: string
+        }
+        Insert: {
+          card_id: string
+          created_at?: string
+          days?: number[]
+          hour: number
+          id?: string
+          minute: number
+          user_id: string
+        }
+        Update: {
+          card_id?: string
+          created_at?: string
+          days?: number[]
+          hour?: number
+          id?: string
+          minute?: number
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "notification_schedules_card_id_fkey"
+            columns: ["card_id"]
+            isOneToOne: false
+            referencedRelation: "cards"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          avatar_url: string | null
+          created_at: string
+          display_name: string | null
+          id: string
+        }
+        Insert: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id: string
+        }
+        Update: {
+          avatar_url?: string | null
+          created_at?: string
+          display_name?: string | null
+          id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
