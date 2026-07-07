@@ -1,0 +1,25 @@
+{
+  "name": "Ecoli — Portefeuille de cartes",
+  "short_name": "Ecoli",
+  "description": "Ton portefeuille numérique de cartes de transport et d'identité.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0d1a12",
+  "theme_color": "#0d1a12",
+  "icons": [
+    {
+      "src": "/apple-touch-icon.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/apple-touch-icon-transparent.png",
+      "sizes": "1024x1024",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ]
+}
