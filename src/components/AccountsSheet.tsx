@@ -10,8 +10,8 @@ interface Props {
   onClose: () => void;
 }
 
-const NATIVE: ProviderKey[] = ["google", "apple"];
-const SOON: ProviderKey[] = ["discord", "spotify", "snapchat"];
+const NATIVE = ["google", "apple"] as const;
+const SOON = ["discord", "spotify", "snapchat"] as const;
 
 const LABEL: Record<ProviderKey, string> = {
   google: "Google",
