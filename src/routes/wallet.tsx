@@ -182,14 +182,29 @@ function WalletPage() {
                         </div>
                       )}
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => deleteCard(card)}
-                      className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground"
-                      aria-label="Supprimer"
-                    >
-                      <Trash2 size={18} />
-                    </button>
+                    <div className="flex items-center gap-1">
+                      <button
+                        type="button"
+                        onClick={() =>
+                          toast("Copier la puce NFC — bientôt", {
+                            description:
+                              "La copie de puce NFC arrive prochainement sur Ecoli.",
+                          })
+                        }
+                        className="flex h-11 w-11 items-center justify-center rounded-full text-brand"
+                        aria-label="Copier la puce NFC (bientôt)"
+                      >
+                        <Nfc size={18} />
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => deleteCard(card)}
+                        className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground"
+                        aria-label="Supprimer"
+                      >
+                        <Trash2 size={18} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               );
@@ -198,7 +213,10 @@ function WalletPage() {
         </section>
       </main>
 
-      <div className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur">
+      <div
+        className="fixed inset-x-0 bottom-0 z-20 border-t border-border bg-background/95 backdrop-blur"
+        style={{ paddingBottom: "env(safe-area-inset-bottom)" }}
+      >
         <div className="container-mobile flex py-3">
           <button
             type="button"
@@ -211,6 +229,7 @@ function WalletPage() {
         </div>
       </div>
 
+      {showAccounts && <AccountsSheet onClose={() => setShowAccounts(false)} />}
       {showAdd && user && (
         <AddCardSheet
           userId={user.id}
