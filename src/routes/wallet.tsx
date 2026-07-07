@@ -1,12 +1,13 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useCallback, useEffect, useState } from "react";
-import { LogOut, Plus, Wallet, Trash2 } from "lucide-react";
+import { LogOut, Plus, Wallet, Trash2, Nfc, UserCircle2 } from "lucide-react";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme";
 import { supabase } from "@/integrations/supabase/client";
 import EcoliLogo from "@/components/EcoliLogo";
 import AddCardSheet from "@/components/AddCardSheet";
+import AccountsSheet from "@/components/AccountsSheet";
 
 export const Route = createFileRoute("/wallet")({
   component: WalletPage,
@@ -27,6 +28,7 @@ function WalletPage() {
   const [cards, setCards] = useState<CardRow[]>([]);
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [showAdd, setShowAdd] = useState(false);
+  const [showAccounts, setShowAccounts] = useState(false);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
@@ -93,9 +95,20 @@ function WalletPage() {
 
   return (
     <div className="min-h-[100dvh] bg-background">
-      <header className="container-mobile flex items-center justify-between pt-8">
+      <header
+        className="container-mobile flex items-center justify-between"
+        style={{ paddingTop: "calc(env(safe-area-inset-top) + 1.25rem)" }}
+      >
         <EcoliLogo size="sm" />
         <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setShowAccounts(true)}
+            className="flex h-11 w-11 items-center justify-center rounded-full border border-border bg-card/60 text-muted-foreground"
+            aria-label="Comptes liés"
+          >
+            <UserCircle2 size={18} />
+          </button>
           <button
             type="button"
             onClick={() =>
