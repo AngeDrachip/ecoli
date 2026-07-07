@@ -1,22 +1,89 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
-import { LogOut, Plus, Wallet } from "lucide-react";
+import { useCallback, useEffect, useState } from "react";
+import { LogOut, Plus, Wallet, Trash2 } from "lucide-react";
+import { toast } from "sonner";
 import { useAuth } from "@/lib/auth-context";
 import { useTheme } from "@/lib/theme";
+import { supabase } from "@/integrations/supabase/client";
 import EcoliLogo from "@/components/EcoliLogo";
+import AddCardSheet from "@/components/AddCardSheet";
 
 export const Route = createFileRoute("/wallet")({
   component: WalletPage,
 });
 
+type CardRow = {
+  id: string;
+  name: string;
+  type: string | null;
+  front_image_url: string | null;
+  back_image_url: string | null;
+};
+
 function WalletPage() {
   const { user, session, loading, signOut } = useAuth();
   const navigate = useNavigate();
   const { theme, setTheme, resolved } = useTheme();
+  const [cards, setCards] = useState<CardRow[]>([]);
+  const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
+  const [showAdd, setShowAdd] = useState(false);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
     if (!loading && !session) navigate({ to: "/auth", replace: true });
   }, [session, loading, navigate]);
+
+  const loadCards = useCallback(async () => {
+    if (!user) return;
+    setFetching(true);
+    const { data, error } = await supabase
+      .from("cards")
+      .select("id,name,type,front_image_url,back_image_url")
+      .order("created_at", { ascending: false });
+    if (error) {
+      toast.error("Erreur de chargement", { description: error.message });
+      setFetching(false);
+      return;
+    }
+    setCards(data ?? []);
+
+    // Signed URLs for previews
+    const paths = (data ?? [])
+      .map((c) => c.front_image_url)
+      .filter((p): p is string => !!p);
+    if (paths.length) {
+      const { data: signed } = await supabase.storage
+        .from("card-images")
+        .createSignedUrls(paths, 3600);
+      const map: Record<string, string> = {};
+      signed?.forEach((s) => {
+        if (s.path && s.signedUrl) map[s.path] = s.signedUrl;
+      });
+      setSignedUrls(map);
+    } else {
+      setSignedUrls({});
+    }
+    setFetching(false);
+  }, [user]);
+
+  useEffect(() => {
+    if (user) loadCards();
+  }, [user, loadCards]);
+
+  async function deleteCard(card: CardRow) {
+    if (!confirm(`Supprimer "${card.name}" ?`)) return;
+    const paths = [card.front_image_url, card.back_image_url].filter(
+      (p): p is string => !!p,
+    );
+    if (paths.length) await supabase.storage.from("card-images").remove(paths);
+    const { error } = await supabase.from("cards").delete().eq("id", card.id);
+    if (error) {
+      toast.error("Suppression impossible", { description: error.message });
+      return;
+    }
+    toast.success("Carte supprimée");
+    setCards((c) => c.filter((x) => x.id !== card.id));
+  }
 
   const displayName =
     (user?.user_metadata?.full_name as string | undefined) ||
@@ -50,7 +117,7 @@ function WalletPage() {
         </div>
       </header>
 
-      <main className="container-mobile pb-24 pt-8">
+      <main className="container-mobile pb-28 pt-8">
         <h1 className="font-display text-3xl font-bold leading-tight text-foreground">
           Bonjour{displayName ? `, ${displayName.split(" ")[0]}` : ""}
         </h1>
@@ -58,18 +125,63 @@ function WalletPage() {
           Toutes tes cartes, au même endroit.
         </p>
 
-        <section className="mt-8">
-          <div className="rounded-3xl border border-dashed border-border bg-card/40 p-8 text-center">
-            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft text-brand">
-              <Wallet size={26} />
+        <section className="mt-8 space-y-3">
+          {fetching ? (
+            <div className="h-40 rounded-3xl border border-border bg-card/40 animate-pulse" />
+          ) : cards.length === 0 ? (
+            <div className="rounded-3xl border border-dashed border-border bg-card/40 p-8 text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-brand-soft text-brand">
+                <Wallet size={26} />
+              </div>
+              <h2 className="mt-4 font-display text-lg font-semibold text-foreground">
+                Aucune carte pour l'instant
+              </h2>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Ajoute ta première carte de transport ou d'identité.
+              </p>
             </div>
-            <h2 className="mt-4 font-display text-lg font-semibold text-foreground">
-              Aucune carte pour l'instant
-            </h2>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Ajoute ta première carte de transport ou d'identité.
-            </p>
-          </div>
+          ) : (
+            cards.map((card) => {
+              const preview = card.front_image_url && signedUrls[card.front_image_url];
+              return (
+                <div
+                  key={card.id}
+                  className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
+                >
+                  {preview ? (
+                    <img
+                      src={preview}
+                      alt={card.name}
+                      loading="lazy"
+                      className="aspect-[16/10] w-full object-cover"
+                    />
+                  ) : (
+                    <div className="aspect-[16/10] w-full bg-gradient-to-br from-brand to-brand/60" />
+                  )}
+                  <div className="flex items-center justify-between p-4">
+                    <div className="min-w-0">
+                      <div className="truncate font-display font-semibold text-foreground">
+                        {card.name}
+                      </div>
+                      {card.type && (
+                        <div className="truncate text-xs text-muted-foreground">
+                          {card.type}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => deleteCard(card)}
+                      className="flex h-11 w-11 items-center justify-center rounded-full text-muted-foreground"
+                      aria-label="Supprimer"
+                    >
+                      <Trash2 size={18} />
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </section>
       </main>
 
@@ -77,6 +189,7 @@ function WalletPage() {
         <div className="container-mobile flex py-3">
           <button
             type="button"
+            onClick={() => setShowAdd(true)}
             className="flex h-14 w-full items-center justify-center gap-2 rounded-2xl bg-brand text-brand-foreground font-semibold shadow-sm active:scale-[0.98] transition"
           >
             <Plus size={20} />
@@ -84,6 +197,14 @@ function WalletPage() {
           </button>
         </div>
       </div>
+
+      {showAdd && user && (
+        <AddCardSheet
+          userId={user.id}
+          onClose={() => setShowAdd(false)}
+          onCreated={loadCards}
+        />
+      )}
     </div>
   );
 }
