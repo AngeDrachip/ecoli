@@ -69,7 +69,20 @@ function WalletPage() {
   }, [user]);
 
   useEffect(() => {
-    if (user) loadCards();
+    if (!user) return;
+    loadCards();
+    // Realtime sync across devices
+    const channel = supabase
+      .channel(`cards:${user.id}`)
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "cards", filter: `user_id=eq.${user.id}` },
+        () => loadCards(),
+      )
+      .subscribe();
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user, loadCards]);
 
   async function deleteCard(card: CardRow) {
