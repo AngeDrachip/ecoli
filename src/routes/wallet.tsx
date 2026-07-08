@@ -38,18 +38,33 @@ function WalletPage() {
   const loadCards = useCallback(async () => {
     if (!user) return;
     setFetching(true);
+    const cacheKey = `ecoli:cards:${user.id}`;
+    const urlsKey = `ecoli:urls:${user.id}`;
+
+    // Hydrate from local cache immediately (offline-first)
+    try {
+      const cached = localStorage.getItem(cacheKey);
+      const cachedUrls = localStorage.getItem(urlsKey);
+      if (cached) setCards(JSON.parse(cached));
+      if (cachedUrls) setSignedUrls(JSON.parse(cachedUrls));
+    } catch {}
+
     const { data, error } = await supabase
       .from("cards")
       .select("id,name,type,front_image_url,back_image_url")
       .order("created_at", { ascending: false });
     if (error) {
-      toast.error("Erreur de chargement", { description: error.message });
+      if (!navigator.onLine) {
+        toast("Mode hors ligne", { description: "Cartes chargées depuis le cache local." });
+      } else {
+        toast.error("Erreur de chargement", { description: error.message });
+      }
       setFetching(false);
       return;
     }
     setCards(data ?? []);
+    try { localStorage.setItem(cacheKey, JSON.stringify(data ?? [])); } catch {}
 
-    // Signed URLs for previews
     const paths = (data ?? [])
       .map((c) => c.front_image_url)
       .filter((p): p is string => !!p);
@@ -62,8 +77,10 @@ function WalletPage() {
         if (s.path && s.signedUrl) map[s.path] = s.signedUrl;
       });
       setSignedUrls(map);
+      try { localStorage.setItem(urlsKey, JSON.stringify(map)); } catch {}
     } else {
       setSignedUrls({});
+      try { localStorage.removeItem(urlsKey); } catch {}
     }
     setFetching(false);
   }, [user]);
