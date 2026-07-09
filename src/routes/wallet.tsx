@@ -270,6 +270,15 @@ function WalletPage() {
       </div>
 
       {showAccounts && <AccountsSheet onClose={() => setShowAccounts(false)} />}
+      {selectedCard && (
+        <CardDetailSheet
+          name={selectedCard.name}
+          type={selectedCard.type}
+          frontUrl={selectedCard.front_image_url ? signedUrls[selectedCard.front_image_url] : null}
+          backUrl={selectedCard.back_image_url ? signedUrls[selectedCard.back_image_url] : null}
+          onClose={() => setSelectedCard(null)}
+        />
+      )}
       {showAdd && user && (
         <AddCardSheet
           userId={user.id}
