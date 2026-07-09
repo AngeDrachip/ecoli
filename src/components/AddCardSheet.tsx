@@ -26,6 +26,7 @@ export default function AddCardSheet({ userId, onClose, onCreated }: Props) {
   const [front, setFront] = useState<File | null>(null);
   const [back, setBack] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [camera, setCamera] = useState<"front" | "back" | null>(null);
   const frontRef = useRef<HTMLInputElement>(null);
   const backRef = useRef<HTMLInputElement>(null);
 
