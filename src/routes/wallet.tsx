@@ -30,6 +30,7 @@ function WalletPage() {
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [showAdd, setShowAdd] = useState(false);
   const [showAccounts, setShowAccounts] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<CardRow | null>(null);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
