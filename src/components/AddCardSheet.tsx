@@ -1,7 +1,8 @@
 import { useRef, useState } from "react";
-import { X, Upload, Loader2, Camera } from "lucide-react";
+import { X, Upload, Loader2, Camera, Image as ImageIcon } from "lucide-react";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
+import CameraCapture from "@/components/CameraCapture";
 
 const SUGGESTIONS = [
   "Carte de bus",
@@ -25,6 +26,7 @@ export default function AddCardSheet({ userId, onClose, onCreated }: Props) {
   const [front, setFront] = useState<File | null>(null);
   const [back, setBack] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [camera, setCamera] = useState<"front" | "back" | null>(null);
   const frontRef = useRef<HTMLInputElement>(null);
   const backRef = useRef<HTMLInputElement>(null);
 
@@ -154,13 +156,12 @@ export default function AddCardSheet({ userId, onClose, onCreated }: Props) {
                     ref={ref}
                     type="file"
                     accept="image/*"
-                    capture="environment"
                     className="hidden"
                     onChange={(e) => setFile(e.target.files?.[0] ?? null)}
                   />
                   <button
                     type="button"
-                    onClick={() => ref.current?.click()}
+                    onClick={() => setCamera(side)}
                     className="mt-2 flex aspect-[16/10] w-full flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border bg-background text-muted-foreground overflow-hidden"
                   >
                     {file ? (
@@ -176,10 +177,27 @@ export default function AddCardSheet({ userId, onClose, onCreated }: Props) {
                       </>
                     )}
                   </button>
+                  <button
+                    type="button"
+                    onClick={() => ref.current?.click()}
+                    className="mt-2 flex w-full items-center justify-center gap-1 text-[11px] text-muted-foreground"
+                    style={{ minHeight: "auto" }}
+                  >
+                    <ImageIcon size={12} />
+                    Galerie
+                  </button>
                 </div>
               );
             })}
           </div>
+
+          {camera && (
+            <CameraCapture
+              side={camera}
+              onCapture={(f) => (camera === "front" ? setFront(f) : setBack(f))}
+              onClose={() => setCamera(null)}
+            />
+          )}
 
           <button
             type="submit"

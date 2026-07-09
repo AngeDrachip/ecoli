@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import EcoliLogo from "@/components/EcoliLogo";
 import AddCardSheet from "@/components/AddCardSheet";
 import AccountsSheet from "@/components/AccountsSheet";
+import CardDetailSheet from "@/components/CardDetailSheet";
 
 export const Route = createFileRoute("/wallet")({
   component: WalletPage,
@@ -29,6 +30,7 @@ function WalletPage() {
   const [signedUrls, setSignedUrls] = useState<Record<string, string>>({});
   const [showAdd, setShowAdd] = useState(false);
   const [showAccounts, setShowAccounts] = useState(false);
+  const [selectedCard, setSelectedCard] = useState<CardRow | null>(null);
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
@@ -66,7 +68,7 @@ function WalletPage() {
     try { localStorage.setItem(cacheKey, JSON.stringify(data ?? [])); } catch {}
 
     const paths = (data ?? [])
-      .map((c) => c.front_image_url)
+      .flatMap((c) => [c.front_image_url, c.back_image_url])
       .filter((p): p is string => !!p);
     if (paths.length) {
       const { data: signed } = await supabase.storage
@@ -191,16 +193,24 @@ function WalletPage() {
                   key={card.id}
                   className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
                 >
-                  {preview ? (
-                    <img
-                      src={preview}
-                      alt={card.name}
-                      loading="lazy"
-                      className="aspect-[16/10] w-full object-cover"
-                    />
-                  ) : (
-                    <div className="aspect-[16/10] w-full bg-gradient-to-br from-brand to-brand/60" />
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCard(card)}
+                    className="block w-full text-left"
+                    style={{ minHeight: "auto" }}
+                    aria-label={`Voir ${card.name}`}
+                  >
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt={card.name}
+                        loading="lazy"
+                        className="aspect-[16/10] w-full object-cover"
+                      />
+                    ) : (
+                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-brand to-brand/60" />
+                    )}
+                  </button>
                   <div className="flex items-center justify-between p-4">
                     <div className="min-w-0">
                       <div className="truncate font-display font-semibold text-foreground">
@@ -260,6 +270,15 @@ function WalletPage() {
       </div>
 
       {showAccounts && <AccountsSheet onClose={() => setShowAccounts(false)} />}
+      {selectedCard && (
+        <CardDetailSheet
+          name={selectedCard.name}
+          type={selectedCard.type}
+          frontUrl={selectedCard.front_image_url ? signedUrls[selectedCard.front_image_url] : null}
+          backUrl={selectedCard.back_image_url ? signedUrls[selectedCard.back_image_url] : null}
+          onClose={() => setSelectedCard(null)}
+        />
+      )}
       {showAdd && user && (
         <AddCardSheet
           userId={user.id}
