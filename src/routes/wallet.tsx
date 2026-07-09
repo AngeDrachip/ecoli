@@ -193,16 +193,24 @@ function WalletPage() {
                   key={card.id}
                   className="relative overflow-hidden rounded-3xl border border-border bg-card shadow-sm"
                 >
-                  {preview ? (
-                    <img
-                      src={preview}
-                      alt={card.name}
-                      loading="lazy"
-                      className="aspect-[16/10] w-full object-cover"
-                    />
-                  ) : (
-                    <div className="aspect-[16/10] w-full bg-gradient-to-br from-brand to-brand/60" />
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setSelectedCard(card)}
+                    className="block w-full text-left"
+                    style={{ minHeight: "auto" }}
+                    aria-label={`Voir ${card.name}`}
+                  >
+                    {preview ? (
+                      <img
+                        src={preview}
+                        alt={card.name}
+                        loading="lazy"
+                        className="aspect-[16/10] w-full object-cover"
+                      />
+                    ) : (
+                      <div className="aspect-[16/10] w-full bg-gradient-to-br from-brand to-brand/60" />
+                    )}
+                  </button>
                   <div className="flex items-center justify-between p-4">
                     <div className="min-w-0">
                       <div className="truncate font-display font-semibold text-foreground">
