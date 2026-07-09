@@ -68,7 +68,7 @@ function WalletPage() {
     try { localStorage.setItem(cacheKey, JSON.stringify(data ?? [])); } catch {}
 
     const paths = (data ?? [])
-      .map((c) => c.front_image_url)
+      .flatMap((c) => [c.front_image_url, c.back_image_url])
       .filter((p): p is string => !!p);
     if (paths.length) {
       const { data: signed } = await supabase.storage
