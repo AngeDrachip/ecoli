@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import EcoliLogo from "@/components/EcoliLogo";
 import AddCardSheet from "@/components/AddCardSheet";
 import AccountsSheet from "@/components/AccountsSheet";
+import CardDetailSheet from "@/components/CardDetailSheet";
 
 export const Route = createFileRoute("/wallet")({
   component: WalletPage,
